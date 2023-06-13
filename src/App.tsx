@@ -1,35 +1,98 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { FormEvent, useState } from "react";
+import { AccountForm } from "./AccountForm";
+import { AddressForm } from "./AddressForm";
+import { UserForm } from "./UserForm";
+import { useMultistepForm } from "./useMultistepForm";
+
+type FormData = {
+  firstName: string;
+  lastName: string;
+  age: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  email: string;
+  password: string;
+};
+
+const INITIAL_DATA: FormData = {
+  firstName: "",
+  lastName: "",
+  age: "",
+  street: "",
+  city: "",
+  state: "",
+  zip: "",
+  email: "",
+  password: "",
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  // LOCAL STATE
+  const [data, setData] = useState(INITIAL_DATA);
+  // use partial when passing a portion of type formData
+  function updateFields(fields: Partial<FormData>) {
+    setData((prev) => {
+      return { ...prev, ...fields };
+    });
+  }
+
+  const { steps, currentStepIndex, step, isFirstStep, back, next, isLastStep } =
+    useMultistepForm([
+      <UserForm {...data} updateFields={updateFields} />,
+      <AddressForm {...data} updateFields={updateFields} />,
+      <AccountForm {...data} updateFields={updateFields} />,
+    ]);
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!isLastStep) return next();
+    alert("sucessful account creation");
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div
+      style={{
+        position: "relative",
+        background: "white",
+        border: "1px solid black",
+        padding: "7rem",
+        margin: "1rem",
+        borderRadius: "0.5rem",
+        fontFamily: "Arial",
+        maxWidth: "max-content",
+      }}
+    >
+      <form
+        style={{
+          position: "absolute",
+          top: "0.5rem",
+          right: "0.5rem",
+        }}
+        onSubmit={onSubmit}
+      >
+        {currentStepIndex + 1} / {steps.length}
+        {step}
+        <div
+          style={{
+            marginTop: "1rem",
+            display: "flex",
+            gap: "0.5rem",
+            justifyContent: "flex-end",
+          }}
+        >
+          {!isFirstStep && (
+            <button type="button" onClick={back}>
+              Back
+            </button>
+          )}
+
+          <button>Next</button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
-export default App
+export default App;
